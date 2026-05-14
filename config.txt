@@ -1,0 +1,5 @@
+# Your Team Fortress 2 install directory here
+tf2_directory = "path/to/install/directory/Team Fortress 2"
+
+# Directory of scenes extracted from TF2's scenes.image
+tf2_scenes_directory = "/path/to/scenes"
