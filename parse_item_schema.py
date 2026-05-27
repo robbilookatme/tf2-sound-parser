@@ -1,6 +1,6 @@
 from lark import Lark, Transformer, Discard
 from parser_types import *
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
 item_schema_file = tf2_directory + "tf/scripts/items/items_game.txt"
 localization_file = tf2_directory + "tf/resource/tf_english.txt"

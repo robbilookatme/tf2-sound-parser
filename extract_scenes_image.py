@@ -1,5 +1,5 @@
 import pathlib
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
 def extract_scenes_image():
     tf2_misc_dir_vpk = vpk.open(tf2_misc_dir_vpk_path)

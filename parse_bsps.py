@@ -26,7 +26,7 @@ SOFTWARE.
 
 import zipfile,io,os
 from parser_types import *
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
 map_dir = tf2_directory + "tf/maps"
 

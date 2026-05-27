@@ -3,3 +3,11 @@ tf2_directory = "path/to/install/directory/Team Fortress 2"
 
 # Directory of scenes extracted from TF2's scenes.image
 tf2_scenes_directory = "/path/to/scenes"
+
+# Configuration flags
+
+# Force replacing all data when run, even if data is present (true or false)
+force_renew_data = false
+
+# Force re-downloading wiki transcripts when run, even if transcripts are present (true or false)
+force_renew_transcripts = false

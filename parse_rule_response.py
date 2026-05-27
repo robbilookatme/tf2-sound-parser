@@ -1,6 +1,6 @@
 from lark import Lark, Transformer, Discard
 from parser_types import *
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
 class ResponseRulesTxtT(Transformer):
     def _f(self, _):

@@ -1,7 +1,7 @@
 from lark import Lark, Transformer, Discard
 import os
 from parser_types import *
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
 class T(Transformer):
     def _f(self,val):

@@ -1,10 +1,10 @@
 import json, pathlib, csv
 import get_tf2_json
 from tf2_data_parse_types import *
-from tf2_parse_paths import *
+from tf2_parser_config import *
 
-def tf2_data_parse():
-    data = get_tf2_json.get_tf2_json()
+def tf2_data_parse(force_renew_data, force_renew_transcripts):
+    data = get_tf2_json.get_tf2_json(force_renew_data, force_renew_transcripts)
 
     data_rules = data["responserules"]["rules"]
     data_responses = data["responserules"]["responses"]
@@ -294,4 +294,4 @@ def tf2_data_parse():
             print(af.name)
 
 if __name__ == "__main__":
-    tf2_data_parse()
+    tf2_data_parse(True, True)
