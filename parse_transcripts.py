@@ -38,13 +38,13 @@ class T(Transformer):
         if transcript.count('"') == 1:
             transcript = transcript.replace('"', "")
 
-        # fix wiki formatting that we don't use, double and triple quotes
+        # fix wiki formatting that we don't use, double and triple apostrophes
         transcript = clean_string(transcript.replace("'''","").replace("''",""))
         
         if file.endswith(".mp3") or file.endswith(".wav"):
             file = file[:-4]
         else:
-            print(file)
+            print("Unexpected filetype:", file)
         
         return {
             "file" : file,
