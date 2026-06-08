@@ -32,7 +32,7 @@ class SoundscriptT(Transformer):
 
     def script(self,children):
         name = children[0]
-        action = children[1]
+        action = flatten(children[1:])
         return {"name":name, "action":action}
     def script_name(self, children):
         return clean_string(children[0]).lower()

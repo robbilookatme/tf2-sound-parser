@@ -53,7 +53,7 @@ def get_bsp_sounds():
             fl = f.readlines()
         for line in fl:
             if "mapname" in line and "Missing" not in line:
-                map_name = str(mapname_lark(line))
+                map_name = str(mapname_lark.parse(line))
                 map_file = map_dir + "/" + map_name + ".bsp"
                 bsp_list.append(map_file)
         # Sanity check: we know there's over 200 base maps in TF2
