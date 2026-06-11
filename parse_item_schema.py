@@ -1,4 +1,5 @@
 from lark import Lark, Transformer, Discard
+import json, pathlib
 from parser_types import *
 from tf2_parser_config import *
 
@@ -84,4 +85,9 @@ def get_item_schema():
         return taunt_vcds
 
 if __name__ == "__main__":
-    get_item_schema()
+    data = get_item_schema()
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/taunts.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

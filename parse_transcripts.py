@@ -1,4 +1,4 @@
-import re
+import re, pathlib, json
 from lark import Lark, Transformer, Discard
 from parser_types import *
 import download_transcripts
@@ -144,4 +144,9 @@ def get_transcripts(force_renew_transcripts):
     return transcripts
 
 if __name__ == "__main__":
-    get_transcripts(False)
+    data = get_transcripts(False)
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/transcripts.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

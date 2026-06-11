@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-import zipfile,io,os
+import zipfile,io,os,json,pathlib
 from lark import Lark, Transformer
 from parser_types import *
 from tf2_parser_config import *
@@ -103,4 +103,9 @@ def get_bsp_sounds():
     return sounddict
 
 if __name__ == "__main__":
-    get_bsp_sounds()
+    data = get_bsp_sounds()
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/bsp_sounds.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

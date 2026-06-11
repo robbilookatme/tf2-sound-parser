@@ -1,3 +1,4 @@
+import json, pathlib
 from lark import Lark, Transformer, Discard
 from parser_types import *
 from tf2_parser_config import *
@@ -155,4 +156,9 @@ def get_responserules():
     }
 
 if __name__ == "__main__":
-    get_responserules()
+    data = get_responserules()
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/responserules.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, Discard
-import os
+import os, pathlib, json
 from parser_types import *
 from tf2_parser_config import *
 
@@ -181,4 +181,9 @@ def get_vcds():
     return vcds
 
 if __name__ == "__main__":
-    get_vcds()
+    data = get_vcds()
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/scenes.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

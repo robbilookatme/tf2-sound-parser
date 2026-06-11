@@ -1,5 +1,5 @@
 from lark import Lark, Transformer, Discard
-import os
+import os, pathlib, json
 from parser_types import *
 from tf2_parser_config import *
 
@@ -90,9 +90,6 @@ def get_soundscripts():
     for file in engine_soundscript_files:
         soundscript_files.append(file)
 
-    print(len(soundscript_files))
-    input()
-
     for file in soundscript_files:
         print(file)
         f = tf2_misc_dir_vpk.get_file(file)
@@ -111,4 +108,9 @@ def get_soundscripts():
     return script_dict
 
 if __name__ == "__main__":
-    get_soundscripts()
+    data = get_soundscripts()
+    pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
+    output_path = "data/events.json"
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent = 4)
+    print("Written to", output_path)

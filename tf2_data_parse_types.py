@@ -33,6 +33,15 @@ def output_sort(key):
 # string matching to determine output file
 #  map_misc is determined at runtime
 grouped_output_paths = {
+    "vsh" : [
+        "saxton_hale_dt_2025_1",
+        "mercs_dt_2025_1",
+        "mercs_tr_2025_1",
+        "mercs_sm_2025_1",
+        "mercs_ml_2025_1",
+        "mercs_ns_2025_1",
+        "mercs_ob_2025_1",
+    ],
     "map_misc" : [],
     "scout" : [
         "vo/toughbreak/scout",
@@ -103,15 +112,6 @@ grouped_output_paths = {
     "halloween" : [
         "vo/halloween_",
         "vo/wolf_howl",
-    ],
-    "vsh" : [
-        "saxton_hale_dt_2025_1",
-        "mercs_dt_2025_1",
-        "mercs_tr_2025_1",
-        "mercs_sm_2025_1",
-        "mercs_ml_2025_1",
-        "mercs_ns_2025_1",
-        "mercs_ob_2025_1",
     ],
     "items" : ["items/"],
     "mvm_bots" : ["mvm/"],
