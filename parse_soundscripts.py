@@ -3,25 +3,35 @@ import os
 from parser_types import *
 from tf2_parser_config import *
 
-soundscript_files = [
-    "scripts/game_sounds_vo_handmade.txt"
-    ,"scripts/game_sounds_mvm.txt"
-    ,"scripts/game_sounds_player.txt"
-    ,"scripts/game_sounds_vo_mvm_handmade.txt"
-    ,"scripts/game_sounds_vo_taunts.txt"
-    ,"scripts/game_sounds_taunt_workshop.txt"
-    ,"scripts/game_sounds_vo_pauling.txt"
-    ,"scripts/game_sounds_vo_merasmus.txt"
-    ,"scripts/game_sounds_vo_tough_break.txt"
-    ,"scripts/game_sounds_passtime.txt"
-    ,"scripts/game_sounds_vo.txt"
-    # The following files are not from game_sounds_manifest.txt
-    #   but are instead hardcoded into SoundEmitterSystem.cpp
-    ,"scripts/mvm_level_sounds.txt"
+# The following files are not from game_sounds_manifest.txt
+#   but are instead hardcoded into SoundEmitterSystem.cpp
+engine_soundscript_files = [
+    "scripts/mvm_level_sounds.txt"
     ,"scripts/mvm_level_sound_tweaks.txt"
     ,"scripts/game_sounds_vo_mvm.txt"
     ,"scripts/game_sounds_vo_mvm_mighty.txt"
 ]
+
+manifest_file_path = "scripts/game_sounds_manifest.txt"
+
+class ManifestT(Transformer):
+    def start(self, children):
+        return children
+    def file(self, children):
+        return clean_string(children[0])
+
+manifest_lark = Lark(r'''
+?start: "game_sounds_manifest" "{" file* "}"
+
+file: "\"" ("precache_file"i | "preload_file"i) "\"" STRING
+
+%import common.CPP_COMMENT -> COMMENT
+%import common.WORD
+%import common.ESCAPED_STRING -> STRING
+%import common.WS
+%ignore WS
+%ignore COMMENT
+''')
     
 class SoundscriptT(Transformer):
     def _f(self, _):
@@ -71,6 +81,17 @@ def get_soundscripts():
     scripts = []
 
     tf2_misc_dir_vpk = vpk.open(tf2_misc_dir_vpk_path)
+
+    mf = tf2_misc_dir_vpk.get_file(manifest_file_path)
+    fd = mf.read().decode("utf-8")
+    x = manifest_lark.parse(fd)
+    soundscript_files = ManifestT().transform(x)
+
+    for file in engine_soundscript_files:
+        soundscript_files.append(file)
+
+    print(len(soundscript_files))
+    input()
 
     for file in soundscript_files:
         print(file)
