@@ -8,6 +8,7 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
 
     data_rules = data["responserules"]["rules"]
     data_responses = data["responserules"]["responses"]
+    data_criteria = data["responserules"]["criteria"]
     data_scenes = data["scenes"]
     data_events = data["events"]
     data_transcripts = data["transcripts"]
@@ -155,6 +156,24 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
                 response.rules.append(rule)
         rules[rule] = rule
 
+    # Print unused criteria
+    if False:
+        used_criteria = set()
+        unused_criteria = set()
+        for rule in rules:
+            for criterion in rule.criteria:
+                used_criteria.add(criterion)
+        for criterion in data_criteria:
+            if criterion not in used_criteria:
+                unused_criteria.add(criterion)
+
+        if len(unused_criteria) > 0:
+            print("UNUSED CRITERIA FOUND:")
+            unused_criteria = sorted(list(unused_criteria))
+            for criterion in unused_criteria:
+                print(criterion)
+            input()
+
     print("Producing output...")
     # Iterate over output filenames, generate csv and json for each
     for filename, file_match_list in grouped_output_paths.items():
@@ -295,3 +314,4 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
 
 if __name__ == "__main__":
     tf2_data_parse(True, True)
+    #tf2_data_parse(False, False)
