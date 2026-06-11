@@ -4,10 +4,10 @@ import parse_vcds, parse_soundscripts, parse_rule_response, parse_transcripts, p
 data_funcs = {
     "transcripts" : lambda a, force_renew_transcripts:
         parse_transcripts.get_transcripts(force_renew_transcripts),
-    "scenes" : lambda a,b : parse_vcds.get_vcds(),
-    "events" : lambda a,b : parse_soundscripts.get_soundscripts(),
+    "scenes" : lambda a,b : parse_vcds.get_scenes(),
+    "events" : lambda a,b : parse_soundscripts.get_events(),
     "responserules" : lambda a,b : parse_rule_response.get_responserules(),
-    "taunts" : lambda a,b : parse_item_schema.get_item_schema(),
+    "taunts" : lambda a,b : parse_item_schema.get_taunts(),
     "bsp_sounds" : lambda a,b : parse_bsps.get_bsp_sounds(),
 }
 

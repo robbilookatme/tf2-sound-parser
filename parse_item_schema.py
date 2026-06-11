@@ -41,7 +41,7 @@ item_schema_line_lark = Lark(r'''
 %ignore WS
 ''')
 
-def get_item_schema():
+def get_taunts():
     print("Parsing localization file for taunt names...")
     with open(localization_file, encoding="utf-16") as f:
         fl = f.readlines()
@@ -85,7 +85,7 @@ def get_item_schema():
         return taunt_vcds
 
 if __name__ == "__main__":
-    data = get_item_schema()
+    data = get_taunts()
     pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
     output_path = "data/taunts.json"
     with open(output_path, "w") as f:

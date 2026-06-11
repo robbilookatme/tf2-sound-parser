@@ -136,7 +136,7 @@ FLOAT : "-"? FFLOAT
 %ignore COMMENT
 ''')
 
-def get_vcds():
+def get_scenes():
     vcds = {}
 
     print("reading vcds... be patient, there's like five thousand...")
@@ -181,7 +181,7 @@ def get_vcds():
     return vcds
 
 if __name__ == "__main__":
-    data = get_vcds()
+    data = get_scenes()
     pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
     output_path = "data/scenes.json"
     with open(output_path, "w") as f:

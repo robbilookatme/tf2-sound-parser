@@ -76,7 +76,7 @@ platform : ("[$WIN32]" | "[$X360]") -> _f
 %ignore COMMENT
 ''')
 
-def get_soundscripts():
+def get_events():
     print("Parsing soundscripts...")
     scripts = []
 
@@ -108,7 +108,7 @@ def get_soundscripts():
     return script_dict
 
 if __name__ == "__main__":
-    data = get_soundscripts()
+    data = get_events()
     pathlib.Path("data/").mkdir(parents=True, exist_ok=True)
     output_path = "data/events.json"
     with open(output_path, "w") as f:
