@@ -2,6 +2,8 @@
 
 This is a utility designed to document information about every sound in Team Fortress 2, particularly voice lines.
 
+Requires [lark](https://pypi.org/project/lark/), [vpk](https://pypi.org/project/vpk/), and [requests](https://pypi.org/project/requests/).
+
 Outputs from my own runs of this utility are available at https://github.com/robbilookatme/tf2-voice-pack-reference
 
 ## Setup
