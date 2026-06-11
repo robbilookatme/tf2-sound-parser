@@ -7,11 +7,11 @@ url_end = "?action=raw"
 
 transcript_data_folder = "data/transcripts/"
 
-def download_transcript(url):
+def download_transcript(url, force_renew_transcripts):
     output_path = transcript_data_folder + url + ".txt"
 
     # Check if file already exists
-    if pathlib.Path(output_path).is_file():
+    if pathlib.Path(output_path).is_file() and not force_renew_transcripts:
         return
     
     # sleep half a second between downloads to prevent spamming
@@ -24,10 +24,10 @@ def download_transcript(url):
     with open(output_path, "w") as f:
         f.write(res.text)
 
-def download_transcripts():
+def download_transcripts(force_renew_transcripts):
     pathlib.Path(transcript_data_folder).mkdir(parents=True, exist_ok=True)
     for url in transcript_names:
-        download_transcript(url)
+        download_transcript(url, force_renew_transcripts)
 
 if __name__ == "__main__":
-    download_transcripts()
+    download_transcripts(True)

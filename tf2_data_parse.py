@@ -28,7 +28,7 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
             af = AudioFile(file)
             audio_files[af] = af
             if af.base_name in data_transcripts:
-                af.transcript = data_transcripts[af.base_name]
+                af.transcript = data_transcripts[af.base_name]["transcript"]
             # Print lines with missing transcripts
             elif False and "vo/" in file and "mvm/" not in file:
                 print("No transcript for line:", af.base_name)

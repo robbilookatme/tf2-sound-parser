@@ -32,7 +32,8 @@ class T(Transformer):
 
     def media(self, children):
         file = clean_string(children[0]).lower().replace(" ", "_")
-        transcript = clean_string(children[1]).replace("<nowiki>","").replace("</nowiki>","")
+        wiki_transcript = children[1]
+        transcript = clean_string(wiki_transcript).replace("<nowiki>","").replace("</nowiki>","")
 
         # fix split quotes
         if transcript.count('"') == 1:
@@ -48,13 +49,16 @@ class T(Transformer):
         
         return {
             "file" : file,
-            "transcript" : transcript
+            "transcript" : transcript,
+            "wiki_transcript" : wiki_transcript
         }
     def start(self, children):
         return flatten(children)
 
-def get_transcripts():
-    download_transcripts.download_transcripts()
+def get_transcripts(force_renew_transcripts):
+    if force_renew_transcripts:
+        print("Force renew transcripts flag enabled, downloading all transcripts...")
+    download_transcripts.download_transcripts(force_renew_transcripts)
     
     print("Parsing transcripts...")
     transcripts = {}
@@ -117,18 +121,21 @@ def get_transcripts():
 
         for line in y:
             lf = line["file"]
-            lt = line["transcript"]
+            lt = {}
+            lt["transcript"] = line["transcript"]
+            lt["wiki_transcript"] = line["wiki_transcript"]
 
             if lf in transcripts:
-                existing_t = transcripts[lf]
+                existing_t = transcripts[lf]["transcript"].lower()
+                new_t = lt["transcript"].lower()
 
                 # Print out conflicts for sounds transcribed more than once
                 #  not recommended, because there are a lot of them
-                if existing_t.lower() != lt.lower() and False:
+                if existing_t != new_t and False:
                     print("Conflicting transcript found")
                     print(lf)
                     print(existing_t)
-                    print(lt)
+                    print(new_t)
                     print()
             else:
                 transcripts[lf] = lt
@@ -137,4 +144,4 @@ def get_transcripts():
     return transcripts
 
 if __name__ == "__main__":
-    get_transcripts()
+    get_transcripts(False)

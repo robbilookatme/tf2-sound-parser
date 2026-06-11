@@ -10,4 +10,5 @@ tf2_scenes_directory = "/path/to/scenes"
 force_renew_data = false
 
 # Force re-downloading wiki transcripts when run, even if transcripts are present (true or false)
+#   Requires force_renew_data to be true
 force_renew_transcripts = false
