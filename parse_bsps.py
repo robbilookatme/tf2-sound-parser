@@ -46,32 +46,31 @@ player_stats_file = tf2_directory + "tf/tf2_playerstats.dmx"
 
 def get_bsp_sounds():
     sounddict = {}
-    bsp_list = []
+    bsp_dict = {}
     # Try to get map name list from tf2_playerstats.dmx
     try:
         with open(player_stats_file) as f:
             fl = f.readlines()
         for line in fl:
             if "mapname" in line and "Missing" not in line:
-                map_name = str(mapname_lark.parse(line))
-                map_file = map_dir + "/" + map_name + ".bsp"
-                bsp_list.append(map_file)
+                map_name = str(mapname_lark.parse(line)) + ".bsp"
+                map_file = map_dir + "/" + map_name
+                bsp_dict[map_name] = map_file
         # Sanity check: we know there's over 200 base maps in TF2
         #  so if we're not close to that number, assume our player stats file sucks
-        if len(bsp_list) < 200:
+        if len(bsp_dict) < 200:
             raise Exception()
     
     # Backup option is to search the map folder directly
     #  This is not optimal, as players may have added maps themselves
     except:
+        print("Error in tf2_playerstats.dmx, loading from maps/ folder...")
         for path,_,files in os.walk(map_dir):
             for file in files:
                 if ".bsp" in file:
-                    bsp_list.append(path + "/" + file)
+                    bsp_dict[file] = path + "/" + file
 
-    for file in bsp_list:
-        print(file, end="")
-    
+    for map_name, file in bsp_dict.items():
         # Load bsp data
         with open(file, "rb") as f:
             fd = f.read()
@@ -79,7 +78,7 @@ def get_bsp_sounds():
         # Find the magic number where the .zip data starts
         offset = fd.find(b'\x00\x50\x4b\x03\x04') + 1
         if offset == 0:
-            print(", couldn't find zipped data")
+            print(map_name + ", couldn't find zipped data")
             continue
 
         try:
@@ -96,13 +95,11 @@ def get_bsp_sounds():
                     soundlist.append(zfilename)
             
             if len(soundlist) > 0:
-                print(", found " + str(len(soundlist)) + " sounds!", end="")
+                print(map_name + ", found " + str(len(soundlist)) + " sounds!")
                 sounddict[file] = soundlist
-
-            print()
         except zipfile.BadZipFile:
             # All base game maps should pass, some custom maps may not
-            print(", error in zip processing")
+            print(map_name + ", error in zip processing")
     return sounddict
 
 if __name__ == "__main__":
