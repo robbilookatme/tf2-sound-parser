@@ -2,21 +2,18 @@ from lark import Lark, Transformer, Discard
 from parser_types import *
 from tf2_parser_config import *
 
-class ResponseRulesTxtT(Transformer):
-    def _f(self, _):
-        return Discard
-
-    def start(self, children):
-        for i in range(len(children)):
-            children[i] = clean_string(children[i].children[0])
-        return children
-
 class ResponseRulesT(Transformer):
     def _f(self, _):
         return Discard
 
     def start(self, children):
         return children
+
+    def include(self, children):
+        return Include(clean_string(children[0]).lower())
+
+    def criterion(self, children):
+        return Criterion(clean_string(children[0]))
 
     def response(self, children):
         name = children[0]
@@ -80,8 +77,9 @@ response_rules_lark = Lark(r'''
 include: "#include" STRING
 
 ?enum : "enumeration" STRING "{" (STRING STRING)* "}" -> _f
-?criterion: ("criterion" | "Criterion") criterion_value* -> _f
-criterion_value: STRING
+?criterion: ("criterion" | "Criterion") criterion_name criterion_value*
+?criterion_name: STRING
+?criterion_value: STRING
 |                "required"
 |                "weight" INT
 
@@ -116,23 +114,23 @@ NAME_WORD : ("_"|LETTER|DIGIT)+
 %ignore COMMENT
 ''')
 
+response_rules_file_path = "scripts/talker/response_rules.txt"
+
 def get_responserules():
     print("Parsing response-rules files...")
     response_rules_files = []
 
     tf2_misc_dir_vpk = vpk.open(tf2_misc_dir_vpk_path)
-    response_rules_file = tf2_misc_dir_vpk.get_file("scripts/talker/response_rules.txt")
+    files_to_read = [response_rules_file_path]
 
-    # read through response_rules.txt first to get all #includes
-    fd = response_rules_file.read().decode("utf-8")
-    x = response_rules_lark.parse(fd)
-    response_rules_files = ResponseRulesTxtT().transform(x)
-    
     rules = {}
     responses = {}
-    
-    for file in response_rules_files:
-        fp = "scripts/" + file.lower()
+    criteria = []
+
+    while len(files_to_read) > 0:
+        fp = files_to_read.pop()
+        if not fp.startswith("scripts/"):
+            fp = "scripts/" + fp
         print(fp)
         f = tf2_misc_dir_vpk.get_file(fp)
         fd = f.read().decode("utf-8")
@@ -140,14 +138,21 @@ def get_responserules():
         #print(x.pretty())
         y = ResponseRulesT().transform(x)
 
-        # split rules and responses into separate things
-        for i in y:
-            if type(i) == Rule:
-                rules[i.name] = i.get()
-            elif type(i) == Response:
-                responses[i.name] = i.scenes
+        for t in y:
+            if type(t) == Rule:
+                rules[t.name] = t.get()
+            elif type(t) == Response:
+                responses[t.name] = t.scenes
+            elif type(t) == Criterion:
+                criteria.append(t.name)
+            elif type(t) == Include:
+                files_to_read.append(t.path)
 
-    return {"rules" : rules, "responses" : responses}
+    return {
+        "rules" : rules,
+        "responses" : responses,
+        "criteria" : criteria
+    }
 
 if __name__ == "__main__":
     get_responserules()

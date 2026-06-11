@@ -86,6 +86,20 @@ class EventSubtype():
         return self.subtype
 
 # Reponse Rule Types
+class Include():
+    def __init__(self, path):
+        self.path = path
+    def __repr__(self):
+        return "INCLUDE: " + self.path
+
+class Criterion():
+    def __init__(self, name):
+        self.name = name
+    def get(self):
+        return {"name" : self.name}
+    def __repr__(self):
+        return "CRITERION: " + self.name
+
 class Rule():
     def __init__(self, name, criteria, responses, contexts, applycontexttoworld):
         self.name = name
