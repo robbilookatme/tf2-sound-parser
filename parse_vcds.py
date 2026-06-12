@@ -2,6 +2,7 @@ from lark import Lark, Transformer, Discard
 import os, pathlib, json
 from parser_types import *
 from tf2_parser_config import *
+from parse_mdls import get_animation_sequences
 
 class T(Transformer):
     def _f(self,val):
@@ -27,6 +28,9 @@ class T(Transformer):
     def speak(self,children):
         return EventSubtype("speak")
 
+    def sequence(self, children):
+        return EventSubtype("sequence")
+
     def time(self, children):
         t1 = float(children[0])
         t2 = float(children[1])
@@ -51,7 +55,11 @@ class T(Transformer):
             elif type(c) == EventName:
                 name = c.name
 
-        if event_subtype != "speak":
+        if event_subtype == "speak":
+            return SpeakEvent(param)
+        elif event_subtype == "sequence":
+            return SequenceEvent(param)
+        else:
             return Discard
 
         return clean_string(param)
@@ -71,8 +79,8 @@ active : "active" STRING -> _f
 
 event: "event" event_subtype event_name "{" event_property* "}"
 event_subtype : "speak" -> speak
+| "sequence" -> sequence
 | "expression" -> _f
-| "sequence" -> _f
 | "stoppoint" -> _f
 | "flexanimation" -> _f
 | "unspecified" -> _f
@@ -137,6 +145,8 @@ FLOAT : "-"? FFLOAT
 ''')
 
 def get_scenes():
+    animation_sequences = get_animation_sequences()
+    
     vcds = {}
 
     print("reading vcds... be patient, there's like five thousand...")
@@ -145,6 +155,12 @@ def get_scenes():
     
     for path, _, files in os.walk(tf2_scenes_directory):
         for file in files:
+            current_class = "n/a"
+            for class_name in animation_sequences:
+                if class_name in path:
+                    current_class = class_name
+                    break
+            
             fp = path + "/" + file
 
             if ".vcd" not in fp.lower():
@@ -155,8 +171,6 @@ def get_scenes():
             # Progress info
             if z % 500 == 0:
                 print("vcd files read:", z)
-
-            outlist = []
 
             with open(fp) as f:
                 #print(fp)
@@ -169,7 +183,21 @@ def get_scenes():
                 print(e)
                 quit()
             
-            outlist = flatten(T().transform(x))
+            event_list = flatten(T().transform(x))
+
+            outlist = []
+
+            class_sequences = {}
+            if current_class in animation_sequences:
+                class_sequences = animation_sequences[current_class]
+
+            for event in event_list:
+                if type(event) == SpeakEvent:
+                    outlist.append(event.script)
+                elif type(event) == SequenceEvent:
+                    if event.sequence in class_sequences:
+                        for script in class_sequences[event.sequence]:
+                            outlist.append(script)
 
             if len(outlist) > 0:
                 fp = "scenes/" + fp.lower()[len(tf2_scenes_directory):]
@@ -177,6 +205,7 @@ def get_scenes():
             elif fd.count("speak") > len(outlist):
                 print("Scene found with invalid speak events:")
                 print(fp, outlist)
+                input()
 
     return vcds
 

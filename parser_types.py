@@ -67,6 +67,12 @@ class SpeakEvent():
     def __repr__(self):
         return self.script
 
+class SequenceEvent():
+    def __init__(self, sequence):
+        self.sequence = sequence
+    def __repr__(self):
+        return self.sequence
+
 class EventParam():
     def __init__(self, param):
         self.param = param
