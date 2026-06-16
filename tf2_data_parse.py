@@ -58,11 +58,16 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
     events = {}
     for event_name, event_audio_list in data_events.items():
         event = Event(event_name, event_audio_list)
+        
+        if event in known_soundscript_events:
+            event.state = FileState.USED
+        
         for event_audio_file in event_audio_list:
             audio_file = None
             if event_audio_file in audio_files:
                 audio_file = audio_files[event_audio_file]
-                audio_file.state = FileState.USED
+                if audio_file.state != FileState.MISSING:
+                    audio_file.state = FileState.USED
             else:
                 audio_file = AudioFile(event_audio_file)
                 audio_files[audio_file] = audio_file
@@ -77,12 +82,12 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
     scenes = {}
     for scene_name, scene_event_list in data_scenes.items():
         scene = Scene(scene_name, scene_event_list)
-        scene.missing = False
         for scene_event in scene_event_list:
             event = None
             if scene_event in events:
                 event = events[scene_event]
-                event.state = FileState.USED
+                if event.state != FileState.MISSING:
+                    event.state = FileState.USED
             else:
                 event = Event(scene_event)
                 events[event] = event
@@ -97,12 +102,12 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
     responses = {}
     for response_name, response_scene_list in data_responses.items():
         response = Response(response_name, response_scene_list)
-        response.missing = False
         for response_scene in response_scene_list:
             scene = None
             if response_scene in scenes:
                 scene = scenes[response_scene]
-                scene.state = FileState.USED
+                if scene.state != FileState.MISSING:
+                    scene.state = FileState.USED
             else:
                 scene = Scene(response_scene)
                 scenes[scene] = scene
@@ -117,12 +122,13 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
     #  Using response list for taunts because I'm a hack fraud
     for taunt_name, taunt_scene_list in data_taunts.items():
         taunt = Response(taunt_name, taunt_scene_list)
-        taunt.missing = False
+        taunt.state = FileState.USED
         for taunt_scene in taunt_scene_list:
             scene = None
             if taunt_scene in scenes:
                 scene = scenes[taunt_scene]
-                scene.state = FileState.USED
+                if scene.state != FileState.MISSING:
+                    scene.state = FileState.USED
             else:
                 scene = Scene(taunt_scene)
                 scenes[scene] = scene
@@ -141,12 +147,12 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
         rule_contexts = rule_data["contexts"]
         rule_applycontexttoworld = rule_data["applycontexttoworld"]
         rule = Rule(rule_name, rule_criteria, rule_response_list, rule_contexts, rule_applycontexttoworld)
-        rule.missing = False
         for rule_response in rule_response_list:
             response = None
             if rule_response in responses:
                 response = responses[rule_response]
-                response.state = FileState.USED
+                if response.state != FileState.MISSING:
+                    response.state = FileState.USED
             else:
                 response = Response(rule_response)
                 responses[response] = response
@@ -155,6 +161,63 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
             if rule not in response.rules:
                 response.rules.append(rule)
         rules[rule] = rule
+
+    # Print unused sound files
+    if False:
+        classes = [
+            "demoman",
+            "engineer",
+            "heavy",
+            "medic",
+            "pyro",
+            "scout",
+            "sniper",
+            "soldier",
+            "spy"
+        ]
+        unused = set()
+        used = set()
+        for af in audio_files:
+            if af.state == FileState.MISSING:
+                continue
+            
+            is_dialogue = False
+            for class_name in classes:
+                output_paths = grouped_output_paths[class_name]
+                for output_path in output_paths:
+                    if output_path in af.name:
+                        is_dialogue = True
+
+            if is_dialogue:
+                if af.state == FileState.UNUSED:
+                    unused.add(af)
+                else:
+                    used.add(af)
+
+        for af in used:
+            all_events_unused = True
+            all_scenes_unused = True
+            for event in af.events:
+                if event in known_soundscript_events:
+                    all_events_unused = False
+                    all_scenes_unused = False
+                
+                if event.state == FileState.USED:
+                    all_events_unused = False
+
+                for scene in event.scenes:
+                    if scene.state == FileState.USED:
+                        all_scenes_unused = False
+
+            if all_events_unused or all_scenes_unused:
+                unused.add(af)
+
+        if len(unused) > 0:
+            print("UNUSED DIALOGUE FOUND:")
+
+            print_list = sorted(list(unused), key=lambda x:x.name)
+            for line in print_list:
+                print(line)
 
     # Print unused criteria
     if False:
@@ -302,11 +365,10 @@ def tf2_data_parse(force_renew_data, force_renew_transcripts):
 
         audio_files = remaining
 
+    # List audio files not output to csv/json
     if False:
-        # Output number of audio files not accounted for
         print(len(audio_files), "audio files were not accounted for!")
 
-        # List out every audio file not accounted for
         for af in audio_files:
             if af.state == FileState.MISSING:
                 print("MISSING: ", end="")
