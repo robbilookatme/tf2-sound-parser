@@ -3,6 +3,24 @@ from lark import Lark, Transformer, Discard
 from parser_types import *
 import download_transcripts
 
+# Determine if transcript is of expected quality
+#  (has quotes, brackets, or parentheses)
+def is_good_transcript(transcript):
+    l_bracket_count = transcript.count("[")
+    r_bracket_count = transcript.count("]")
+    bracket_count_matches = (l_bracket_count == r_bracket_count)
+    has_brackets = bracket_count_matches and l_bracket_count > 0
+
+    l_parenthesis_count = transcript.count("(")
+    r_parenthesis_count = transcript.count(")")
+    parentheses_count_matches = l_parenthesis_count == r_parenthesis_count
+    has_parentheses = parentheses_count_matches and l_parenthesis_count > 0
+
+    quote_count = transcript.count('"')
+    has_quotes = quote_count > 1 and (quote_count % 2 == 0)
+
+    return (has_brackets or has_parentheses or has_quotes)
+
 transcript_lark = Lark(r'''
 ?start: (media | char)*
 media.1: "[[Media:"i FILENAME "|" DIALOGUE "]]"
@@ -96,18 +114,22 @@ def get_transcripts(force_renew_transcripts):
 
         # Parse transcripts
         x = transcript_lark.parse(fd)
-        y = T().transform(x)
+        list_of_lines = T().transform(x)
         
-        print(", found", len(y), "lines")
+        print(", found", len(list_of_lines), "lines")
 
         # Sanity check for parsed lines vs expected count
-        if len(y) != media_count:
-            print("Mismatch! In", t + ",", len(y), "lines were parsed, expected", media_count)
+        if len(list_of_lines) != media_count:
+            print("Mismatch! In",
+                  t + ",",
+                  len(list_of_lines),
+                  "lines were parsed, expected",
+                  media_count)
 
             for tl in ml:
                 text_line = tl.lower().replace(" ","_")
                 found = False
-                for line in y:
+                for line in list_of_lines:
                     filename = line["file"]
                     if filename in text_line:
                         #print(filename, text_line)
@@ -119,15 +141,28 @@ def get_transcripts(force_renew_transcripts):
             
             break
 
-        for line in y:
+        for line in list_of_lines:
             lf = line["file"]
             lt = {}
             lt["transcript"] = line["transcript"]
             lt["wiki_transcript"] = line["wiki_transcript"]
 
             if lf in transcripts:
-                existing_t = transcripts[lf]["transcript"].lower()
-                new_t = lt["transcript"].lower()
+                existing_t = transcripts[lf]["wiki_transcript"]
+                new_t = lt["wiki_transcript"]
+
+                # Only replace transcript if new transcript is of better quality
+                #  e.g. "laughs" would be replaced with "(Laugh)"
+                is_old_transcript_bad = not is_good_transcript(existing_t)
+                is_new_transcript_good = is_good_transcript(new_t)
+                are_transcripts_different = existing_t.lower() != new_t.lower()
+                should_replace = is_old_transcript_bad and is_new_transcript_good and are_transcripts_different
+
+                if should_replace:
+                    transcripts[lf] = lt
+                    print("TRANSCRIPT REPLACED!", lf)
+                    print(existing_t)
+                    print(new_t)
 
                 # Print out conflicts for sounds transcribed more than once
                 #  not recommended, because there are a lot of them
