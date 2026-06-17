@@ -31,22 +31,20 @@ class T(Transformer):
     def sequence(self, children):
         return EventSubtype("sequence")
 
+    def other(self, chilren):
+        return EventSubtype("other")
+
     def time(self, children):
         t1 = float(children[0])
         t2 = float(children[1])
 
-        # if t2 is less than t1, this COULD be a bad vcd
-        #  but not necessarily! depends on if there are other
-        #  events with valid timestamps
-        # that's hard to figure out from here, so just assume
-        #  it's fine
-
-        return Discard
+        return EventTime(t1,t2)
 
     def event(self,children):
         event_subtype = None
         name = None
         param = None
+        time = None
         for c in children:
             if type(c) == EventSubtype:
                 event_subtype = c.subtype
@@ -54,13 +52,19 @@ class T(Transformer):
                 param = clean_string(c.param).lower()
             elif type(c) == EventName:
                 name = c.name
+            elif type(c) == EventTime:
+                time = c
+            else:
+                print("ERROR?")
+                print(type(c))
+                input()
 
         if event_subtype == "speak":
-            return SpeakEvent(param)
+            return SpeakEvent(param, time)
         elif event_subtype == "sequence":
-            return SequenceEvent(param)
+            return SequenceEvent(param, time)
         else:
-            return Discard
+            return OtherEvent(time)
 
         return clean_string(param)
 
@@ -80,7 +84,7 @@ active : "active" STRING -> _f
 event: "event" event_subtype event_name "{" event_property* "}"
 event_subtype : "speak" -> speak
 | "sequence" -> sequence
-| "expression" -> _f
+| "expression" -> other
 | "stoppoint" -> _f
 | "flexanimation" -> _f
 | "unspecified" -> _f
@@ -160,6 +164,10 @@ def get_scenes():
                 if class_name in path:
                     current_class = class_name
                     break
+
+            class_sequences = {}
+            if current_class in animation_sequences:
+                class_sequences = animation_sequences[current_class]
             
             fp = path + "/" + file
 
@@ -187,17 +195,31 @@ def get_scenes():
 
             outlist = []
 
-            class_sequences = {}
-            if current_class in animation_sequences:
-                class_sequences = animation_sequences[current_class]
+            start_time = 999999
+            end_time = -1
 
             for event in event_list:
+                time = event.time
+
+                if time.start < start_time:
+                    start_time = time.start
+
+                if time.end > end_time:
+                    end_time = time.end
+                
                 if type(event) == SpeakEvent:
                     outlist.append(event.script)
                 elif type(event) == SequenceEvent:
                     if event.sequence in class_sequences:
                         for script in class_sequences[event.sequence]:
                             outlist.append(script)
+
+            if end_time <= start_time:
+                print("Scene found with invalid timestamps:")
+                print(fp)
+                print("Scene will not play when called by rule-response system.")
+
+                fp = fp + " (bad timestamp)"
 
             if len(outlist) > 0:
                 fp = "scenes/" + fp.lower()[len(tf2_scenes_directory):]

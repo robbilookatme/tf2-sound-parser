@@ -62,16 +62,24 @@ transcript_names = [
 
 # VCD Types
 class SpeakEvent():
-    def __init__(self, script):
+    def __init__(self, script, time):
         self.script = script
+        self.time = time
     def __repr__(self):
         return self.script
 
 class SequenceEvent():
-    def __init__(self, sequence):
+    def __init__(self, sequence, time):
         self.sequence = sequence
+        self.time = time
     def __repr__(self):
         return self.sequence
+
+class OtherEvent():
+    def __init__(self, time):
+        self.time = time
+    def __repr__(self):
+        return "OtherEvent"
 
 class EventParam():
     def __init__(self, param):
@@ -84,6 +92,13 @@ class EventName():
         self.name = name
     def __repr__(self):
         return self.name
+
+class EventTime():
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+    def __repr__(self):
+        return str(self.start) + "-" + str(self.end)
 
 class EventSubtype():
     def __init__(self, subtype):
