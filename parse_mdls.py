@@ -13,12 +13,18 @@ classes = {
          "spy" : "spy"
 }
 
+directories = [
+    "models/player/CLASSNAME_animations.mdl",
+    "models/workshop/player/animations/CLASSNAME_workshop_animations.mdl"
+]
+
 def b2int(b):
     return int.from_bytes(b, byteorder="little")
 
 def b2str(b):
     return b.decode("utf-8")
 
+PLAYSOUND_NAME = "AE_CL_PLAYSOUND"
 SPEAK_INDEX = 5004
 
 def get_animation_sequences():
@@ -56,62 +62,78 @@ def get_animation_sequences():
         print_line = full_class_name[0].upper() + full_class_name[1:] + "..."
         print("Getting animation sequences for", print_line)
         mdl_seqs = {}
-        cur = 0
-        
-        fp = "models/player/" + class_name + "_animations.mdl"
-        f = tf2_misc_dir_vpk.get_file(fp)
-        fd = f.read()
-    
-        mdl_id = get(4)
-        
-        get(4 + 4 + 64 + 4 + (12 * 6) + 4)
-        get(4 * 8)
-        
-        mdl_numlocalseq = b2int(get(4))
-        mdl_localseqoffset = b2int(get(4))
-        
-        seek(mdl_localseqoffset)
-        for i in range(mdl_numlocalseq):
-            seq_startposition = cur
-            seq_baseheaderoffset = b2int(get(4))
-            seq_nameoffset = b2int(get(4))
 
-            get(4*4)
+        for dir_path in directories:
+            fp = dir_path.replace("CLASSNAME", class_name)
+            f = tf2_misc_dir_vpk.get_file(fp)
+            fd = f.read()
 
-            seq_eventcount = b2int(get(4))
-            seq_eventoffset = b2int(get(4))
-            #print(seq_eventcount, seq_eventoffset)
+            cur = 0
+        
+            mdl_id = get(4)
             
-            get(180)
-
-            seq_endposition = cur
-
-            # Start looking for sequence subdata
-
-            # Sequence name
-            seek(seq_startposition + seq_nameoffset)
+            get(4 + 4 + 64 + 4 + (12 * 6) + 4)
+            get(4 * 8)
             
-            seq_name = readstr()
+            mdl_numlocalseq = b2int(get(4))
+            mdl_localseqoffset = b2int(get(4))
+            
+            seek(mdl_localseqoffset)
+            for i in range(mdl_numlocalseq):
+                seq_startposition = cur
+                seq_baseheaderoffset = b2int(get(4))
+                seq_nameoffset = b2int(get(4))
 
-            # Sequence events
-            seek(seq_startposition + seq_eventoffset)
-            seq_event_list = []
-            for j in range(seq_eventcount):
-                event_startposition = cur
-                _ = get(4)
-                event_index = b2int(get(4))
-                event_type = b2int(get(4))
-                event_options = b2str(get(64)).strip("\0")
-                if event_index == SPEAK_INDEX:
-                    seq_event_list.append(event_options)
-                event_nameoffset = b2int(get(4))
+                get(4*4)
+
+                seq_eventcount = b2int(get(4))
+                seq_eventoffset = b2int(get(4))
+                #print(seq_eventcount, seq_eventoffset)
                 
-                event_endposition = cur
+                get(180)
 
-            if len(seq_event_list) > 0:
-                mdl_seqs[seq_name] = seq_event_list
-            
-            seek(seq_endposition)
+                seq_endposition = cur
+
+                # Start looking for sequence subdata
+
+                # Sequence name
+                seek(seq_startposition + seq_nameoffset)
+                
+                seq_name = readstr()
+
+                # Sequence events
+                seek(seq_startposition + seq_eventoffset)
+                seq_event_list = []
+                for j in range(seq_eventcount):
+                    event_startposition = cur
+                    _ = get(4)
+                    event_index = b2int(get(4))
+                    event_type = b2int(get(4))
+                    event_options = b2str(get(64)).strip("\0")
+                    event_nameoffset = b2int(get(4))
+                    
+                    event_endposition = cur
+
+                    event_name = ""
+
+                    if event_nameoffset != 0:
+                        seek(event_startposition + event_nameoffset)
+                        event_name = readstr()
+                        seek(event_endposition)
+                    
+                    if event_index == SPEAK_INDEX or event_name == PLAYSOUND_NAME:
+                        seq_event_list.append(event_options.lower())
+
+                if len(seq_event_list) > 0:
+                    mdl_seqs[seq_name] = seq_event_list
+                
+                seek(seq_endposition)
+        
         class_seqs[full_class_name] = mdl_seqs
 
     return class_seqs
+
+if __name__ == "__main__":
+    import pprint
+    data = get_animation_sequences()
+    pprint.pp(data)

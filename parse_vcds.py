@@ -193,6 +193,8 @@ def get_scenes():
             
             event_list = flatten(T().transform(x))
 
+            event_list = sorted(event_list, key=lambda x: x.time.start)
+
             outlist = []
 
             start_time = 999999
