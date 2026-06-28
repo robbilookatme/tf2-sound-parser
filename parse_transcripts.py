@@ -23,11 +23,12 @@ def is_good_transcript(transcript):
 
 transcript_lark = Lark(r'''
 ?start: (media | char)*
-media.1: "[[Media:"i FILENAME "|" DIALOGUE "]]"
+media.1: "[[Media:"i FILENAME "|" (BRACKETED_DIALOGUE | DIALOGUE) "]]"
 
 # this took so so long to figure out.
 #  basically, accept any character that isn't ]
 #  and also accept any ] not followed by another ]
+BRACKETED_DIALOGUE: "[" DIALOGUE "]"
 DIALOGUE: (/[^\]]/ | /\][^\]]/)+
 
 FILENAME: NAME (".wav"i|".mp3"i)
