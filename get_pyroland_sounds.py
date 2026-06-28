@@ -1,38 +1,9 @@
 import json
+from tree_type import *
 
 def load_json(fp):
     with open(fp) as f:
         return json.load(f)
-
-class TreeNode:
-    def __init__(self, name):
-        self.name = name
-        self.children = []
-    def addChild(self, child):
-        if child:
-            self.children.append(child)
-    def print(self, tabs = 0):
-        print(("\t" * tabs) + self.name)
-        for child in self.children:
-            child.print(tabs = tabs + 1)
-    def prune(self):
-        new_children = []
-        for child in self.children:
-            returned_child = child.prune()
-            if returned_child:
-                new_children.append(returned_child)
-        self.children = new_children
-        if len(self.children) > 0:
-            return self
-        else:
-            return None
-class TreeLeaf:
-    def __init__(self, value = None):
-        self.value = value
-    def print(self, tabs = 0):
-        print(("\t" * tabs) + str(self.value))
-    def prune(self):
-        return self
 
 # Sounds that are replaced with laughter in pyroland
 #   Info taken from tf_gamerules.cpp
